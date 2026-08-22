@@ -1,5 +1,9 @@
 ✅ Interview‑Important Topics Across All Frameworks ⭐⭐⭐⭐⭐
 
+Pytest Quick Recap GPT Link-1:- https://chatgpt.com/c/6a65ea47-3718-83ee-88d1-f0e5b79c34f3
+Pytest Quick Recap GPT Link-2:- https://chatgpt.com/c/6a7c7829-5d24-83ee-82c1-88567d77a298
+
+
 PYTEST
 ✅ Fixtures
 ✅ Parametrization
@@ -9,6 +13,9 @@ PYTEST
 ✅ Parallel execution
 
 -----------------------------------------------------------------
+
+Selenium Quick Recap GPT Link-1:- https://chatgpt.com/c/69f59343-8004-8321-86c8-7a90b9609144
+Selenium Quick Recap GPT Link-2:- https://chatgpt.com/c/6a87d246-a898-83ee-9c85-a17be31e8489
 
 
 SELENIUM
@@ -20,6 +27,9 @@ SELENIUM
 ✅ Screenshots
 
 -----------------------------------------------------------------
+
+API Quick Recap GPT Link:- https://chatgpt.com/c/6a87d246-a898-83ee-9c85-a17be31e8489
+Check the API Interview PDF Document in this repo for better understanding.
 
 
 API
