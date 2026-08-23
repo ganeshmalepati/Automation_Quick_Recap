@@ -1,0 +1,499 @@
+How to explain Pytest in an interview
+
+    "Pytest is a Python-based testing framework that I use to build scalable UI and API automation. In my Nutanix automation project, 
+    I used Pytest as the test execution framework along with Selenium for UI automation and the Requests library for REST API validation. 
+    I used fixtures for reusable setup and teardown, assertions for validation, markers for test categorization, and Allure for reporting. 
+    The framework was also integrated with Jenkins for CI/CD execution."
+
+
+************************************************************************************************************************************************
+
+Therefore:
+
+Automation without assertions is essentially just task execution, not effective automated testing.
+
+
+************************************************************************************************************************************************
+
+
+What is a fixture?
+
+A fixture is a reusable mechanism used to prepare the test environment before a test and optionally clean it up afterward.
+
+A good interview answer is:
+
+"I select fixture scope based on resource lifecycle and test isolation. 
+I use function scope when every test requires an independent resource, module or class scope when the resource can safely be reused, 
+and session scope for expensive resources such as global configuration or environment-level initialization."
+
+
+************************************************************************************************************************************************
+
+ Why we use yield instead of return in fixtures:-
+
+     In pytest fixtures, we use yield (instead of just return) when we need to perform both setup and teardown around a test. 
+     Think of yield fixtures as a context manager for tests: everything before yield is setup; everything after yield is teardown.
+
+    return in a fixture → provides a value to the test (setup only).
+    yield in a fixture → provides a value and runs teardown code after the test finishes (setup + cleanup).
+    Pytest guarantees the teardown runs even if the test fails, errors, or raises exceptions.
+
+
+************************************************************************************************************************************************
+
+Real-world fixture architecture for your project
+
+For your Nutanix automation framework, I would describe it like this:
+
+
+                     Pytest
+                       │
+                 conftest.py
+                       │
+       ┌───────────────┼────────────────┐
+       │               │                │
+    Browser          API            Configuration
+    Fixture         Fixture            Fixture
+       │               │                │
+    Selenium       Requests         Environment
+       │               │                │
+       └───────────────┼────────────────┘
+                       │
+                  Test Layer
+                       │
+              ┌────────┴────────┐
+              │                 │
+             UI                API
+           Tests              Tests
+              │                 │
+              └────────┬────────┘
+                       │
+                    Allure
+                       │
+                    Jenkins
+
+
+
+************************************************************************************************************************************************
+
+One important SDET-level point: Fixture vs Utility
+
+Interviewers may ask:
+
+"What's the difference between a fixture and a utility?"
+
+A utility generally provides reusable functionality.
+
+A fixture manages the lifecycle/dependency of something required by tests.
+
+************************************************************************************************************************************************
+
+How all 4 concepts connect
+
+These concepts shouldn't be learned independently.
+
+In your framework:
+
+                  Pytest
+                    │
+        ┌───────────┼───────────┐
+        ↓           ↓           ↓
+ Test Discovery  Fixtures   Assertions
+        │           │           │
+        ↓           ↓           ↓
+ Find tests     Prepare      Validate
+ automatically  resources    results
+        │           │           │
+        └───────────┼───────────┘
+                    ↓
+                Test Case
+                    ↓
+             Selenium / API
+                    ↓
+                 Allure
+                    ↓
+                 Jenkins
+
+For Example:- 
+
+def test_create_blueprint(logged_in_driver):
+
+    blueprint_page = BlueprintPage(logged_in_driver)
+
+    blueprint_page.create_blueprint(
+        name="TestBlueprint",
+        project="AutomationProject"
+    )
+
+    assert blueprint_page.is_blueprint_created(
+        "TestBlueprint"
+    )
+
+
+
+Here:
+
+    Pytest → test framework
+    Auto Discovery → finds test_create_blueprint
+    Fixture → provides logged_in_driver
+    Selenium → interacts with UI
+    POM → encapsulates page operations
+    Assertion → validates the result
+    Allure → reports execution
+    Jenkins → executes it in CI/CD
+
+************************************************************************************************************************************************
+
+⭐ Interview-ready summary
+
+If the interviewer asks:
+
+"Explain your experience with Pytest."
+
+You can answer:
+
+"I have used Pytest as the primary test execution framework in my automation framework. 
+In my Cloud Management automation project, I used Pytest with Selenium for UI automation and the Requests library for REST API automation. 
+I followed Pytest's test discovery conventions and organized tests based on business scenarios. I used assertions to validate UI elements, API status codes, response payloads, and business conditions.
+
+I heavily used fixtures for reusable setup and teardown, such as browser initialization, authentication, API clients, configuration, and test data. 
+Depending on the resource lifecycle, I used different fixture scopes such as function, module, and session. Shared fixtures were maintained in conftest.py. 
+I also integrated the framework with Allure for reporting and Jenkins for CI/CD execution."
+
+************************************************************************************************************************************************
+
+Use autouse fixtures for genuinely common behavior, not for every reusable setup operation.
+
+"An autouse fixture is a fixture configured with autouse=True, which Pytest automatically applies to all applicable tests within its scope without explicit fixture injection. 
+I use autouse fixtures for common cross-cutting setup or cleanup activities such as environment validation, logging, or collecting diagnostics. 
+I avoid using autouse for business-specific setup because explicit fixture dependencies make tests easier to understand and maintain."
+
+************************************************************************************************************************************************
+
+What is conftest.py?
+
+conftest.py is a special Pytest configuration file used primarily to define shared fixtures, hooks, and test configuration for a directory hierarchy.
+
+************************************************************************************************************************************************
+
+Important correction: "Global fixture"
+
+People often say:
+
+"Global fixture"
+
+But Pytest doesn't have a special fixture scope literally called global.
+
+Instead, a fixture in the root-level conftest.py can be available throughout the relevant test directory hierarchy.
+
+So in interviews, it is better to say:
+
+"A root-level conftest.py provides shared fixtures across the test suite's directory hierarchy."
+
+rather than claiming there is a global fixture scope.
+
+************************************************************************************************************************************************
+
+Why register markers?
+
+If we don't register custom markers, Pytest can produce warnings such as:
+
+PytestUnknownMarkWarning
+
+Registration also provides:
+
+Documentation
+Consistency
+Better maintainability
+Cleaner CI execution
+
+************************************************************************************************************************************************
+
+Fixtures can parameterize the environment/setup, while pytest.mark.parametrize can parameterize the test data.
+
+Fixture Parameterization vs mark.parametrize
+Feature	                Fixture Parameterization	          pytest.mark.parametrize
+Main purpose	        Parameterize fixture/setup	          Parameterize test data
+Syntax	                @pytest.fixture(params=...)	          @pytest.mark.parametrize(...)
+Access value	        request.param	                      Function argument
+Useful for	            Environment/resources/configurations  Input/output combinations
+Can reuse setup	        Yes	                                  Less focused on setup
+
+
+************************************************************************************************************************************************
+
+
+⭐ Interview Questions You Should Be Ready For
+
+For these concepts, I would expect questions such as:
+
+1. What is an autouse fixture?
+
+A fixture configured with autouse=True that Pytest automatically executes for applicable tests without explicit fixture injection.
+
+2. Should every fixture be autouse?
+
+No. I use autouse for genuinely common cross-cutting setup or cleanup. For business-specific dependencies, explicit fixture injection is preferable because it makes dependencies visible.
+
+3. What is conftest.py?
+
+A special Pytest file used to define shared fixtures, hooks, and configuration within a directory hierarchy without requiring explicit imports.
+
+4. Can we have multiple conftest.py files?
+
+Yes. Fixtures can be organized at different directory levels, and their availability follows the directory hierarchy.
+
+5. Is smoke a built-in Pytest marker?
+
+No. smoke and regression are typically custom markers. Built-in markers include skip, skipif, xfail, and parametrize.
+
+6. Why register custom markers?
+
+To tell Pytest about custom markers, avoid unknown-marker warnings, document their purpose, and maintain consistent test execution.
+
+7. How do you execute only smoke tests?
+pytest -m smoke
+8. How do you execute regression tests?
+pytest -m regression
+9. How do you run the same test with multiple datasets?
+@pytest.mark.parametrize(
+    "username",
+    ["admin", "operator", "readonly"]
+)
+def test_login(username):
+    ...
+10. Difference between fixture parameterization and pytest.mark.parametrize?
+
+Fixture parameterization is primarily useful for varying setup/resources, while pytest.mark.parametrize is primarily used for varying test inputs and expected results.
+
+
+************************************************************************************************************************************************
+
+⭐ The key concepts to remember
+
+AUTOUSE
+↓
+Automatically execute common setup/cleanup
+
+FIXTURE PARAMETERIZATION
+↓
+Same fixture with different configurations
+
+CONFTEST.PY
+↓
+Centralized fixture/hook management
+
+LOCAL FIXTURE
+↓
+Limited to a specific directory hierarchy
+
+ROOT/SHARED FIXTURE
+↓
+Available across applicable test directories
+
+MARKERS
+↓
+Categorize and selectively execute tests
+
+PYTEST.INI
+↓
+Register markers + configure Pytest
+
+MARK.PARAMETRIZE
+↓
+Same test logic + multiple test datasets
+
+
+************************************************************************************************************************************************
+
+Interview answer
+
+"I prefer Python's logging module over print statements because logging supports different severity levels, configurable handlers, timestamps, formatting, and integration with CI/CD execution. 
+In automation, this makes debugging failures much easier, especially when tests run remotely through Jenkins."
+
+
+************************************************************************************************************************************************
+
+Important interview question
+"Can we blindly run all Selenium tests in parallel?"
+
+No.
+
+This is an important SDET-level point.
+
+Tests may interfere with each other if they share:
+
+Same user
+Same browser profile
+Same test data
+Same VM
+Same blueprint
+Same database records
+Same Kubernetes resources
+
+
+What is a flaky test?
+
+A flaky test is a test that produces inconsistent results without a corresponding code or requirement change.
+
+
+A good flaky-test strategy for your framework
+
+For your Nutanix automation:
+
+             Test Failure
+                  │
+         ┌────────┴────────┐
+         ↓                 ↓
+   Application bug     Environment/Test issue
+         │                 │
+       Fix bug        Analyze logs/screenshots
+                           │
+                 ┌─────────┼─────────┐
+                 ↓         ↓         ↓
+              Timing    Test data  Kubernetes
+                 │         │         │
+              Explicit   Isolate    Check pod/
+              waits      data       service state
+                 │         │         │
+                 └─────────┼─────────┘
+                           ↓
+                     Root-cause fix
+                           ↓
+                     Optional retry
+
+
+************************************************************************************************************************************************
+
+⭐ Interview-ready answers
+
+Q1. Why do you use logging in automation?
+
+"I use logging to capture meaningful execution information and simplify failure analysis. 
+In my Nutanix automation framework, I log important UI actions, API requests and responses, test data references, Kubernetes/service checks, and failure details. 
+This is especially useful when tests execute through Jenkins because I can analyze the execution history without reproducing the issue locally."
+
+
+Q2. What logging levels do you know?
+
+"The commonly used levels are DEBUG, INFO, WARNING, ERROR, and CRITICAL. I use DEBUG for detailed troubleshooting information, 
+INFO for normal execution flow, WARNING for unexpected but recoverable conditions, ERROR for operation failures, and CRITICAL for severe failures that can prevent further execution."
+
+
+Q3. What is pytest-xdist?
+
+"pytest-xdist is a Pytest plugin that enables parallel and distributed test execution. I can use pytest -n 4 to execute tests across four workers. 
+This can significantly reduce execution time for large regression suites, provided the tests and test data are properly isolated and parallel-safe."
+
+
+Q4. What is pytest-cov?
+
+"pytest-cov integrates coverage measurement with Pytest. It helps identify which parts of the Python code under test are being exercised. 
+However, I don't treat coverage percentage as a direct measure of test quality because high coverage doesn't necessarily mean all business scenarios are validated."
+
+
+Q5. What is pytest-html?
+
+"pytest-html is a plugin that generates HTML test execution reports. It provides a lightweight way to view test status, failures, and execution details. In my framework, I primarily worked with Allure for richer reporting, but pytest-html is useful for simpler HTML reporting requirements."
+
+
+Q6. What is a flaky test?
+
+"A flaky test is a test that produces inconsistent results without a corresponding change in the application or test logic. Common causes include synchronization problems, unstable environments, shared test data, network issues, and improper cleanup."
+
+
+Q7. How do you handle flaky tests?
+
+A strong SDET answer:
+
+"First, I don't immediately add retries. I analyze the failure using logs, screenshots, API responses, stack traces, and environment information to identify the root cause. For Selenium failures, I check synchronization and use explicit waits instead of hard sleeps. For API or Kubernetes-related failures, I check network conditions, service availability, pod state, and response behavior. If the failure is genuinely transient, I can use a controlled retry mechanism such as pytest-rerunfailures as a temporary mitigation, while still tracking and fixing the underlying root cause."
+
+That is much stronger than simply saying:
+
+"I use rerunfailures."
+
+
+************************************************************************************************************************************************
+
+
+They want to know whether you understand engineering trade-offs:
+
+Concept	                    What interviewer wants to hear
+Logging	                    Can you debug failures?
+DEBUG/INFO/etc.	            Do you know what information belongs at each level?
+xdist	                    Can you improve execution time safely?
+pytest-cov	                Do you understand what coverage actually means?
+pytest-html	                Can you generate usable execution reports?
+Flaky tests	                Can you identify root causes?
+Reruns	                    Do you understand retry is mitigation, not a fix?
+Selenium	                Can you fix synchronization instead of adding sleeps?
+Kubernetes	                Can you distinguish environment failures from application failures?
+Jenkins	                    Can you use logs/reports to debug CI failures?
+
+
+************************************************************************************************************************************************
+
+Pytest Hooks — 🔥 High-Value SDET Topic
+
+Pytest hooks are predefined extension points that allow us to customize or control Pytest's execution lifecycle.
+
+In simple terms:
+
+Fixtures are mainly used to provide test dependencies/setup/teardown, while hooks allow us to customize what Pytest itself does at different stages of test execution.
+
+What exactly is a hook?
+
+A Pytest hook is a special function with a predefined name that Pytest automatically calls at a specific point in its execution lifecycle.
+
+For Example:-
+
+def pytest_sessionstart(session):
+    print("Pytest session started")
+
+Fixture
+   ↓
+"What does my test need?"
+
+Hook
+   ↓
+"What should Pytest do at this point in its lifecycle?"
+
+
+"Pytest hooks are predefined extension points provided by Pytest that allow us to customize the test execution lifecycle. 
+I generally define them in conftest.py or plugins. For example, pytest_sessionstart can be used for session-level framework initialization, 
+pytest_runtest_setup can be used for test-level preconditions or framework-level logging, and pytest_runtest_call is associated with the actual test execution phase.
+
+In an automation framework, I use hooks mainly for framework-level concerns rather than replacing fixtures. 
+For example, fixtures handle resources such as Selenium drivers, API clients, authentication, and test data, while hooks can handle things like execution metadata, 
+environment initialization, failure diagnostics, and reporting. For capturing screenshots or logs when a test fails, pytest_runtest_makereport is particularly useful."
+
+
+
+             Pytest
+                │
+                ↓
+       pytest_sessionstart
+                │
+                ↓
+      Initialize environment
+                │
+                ↓
+          Test selected
+                │
+                ↓
+       pytest_runtest_setup
+                │
+                ↓
+       Check K8s prerequisite
+                │
+                ↓
+       pytest_runtest_call
+                │
+                ↓
+       test_pod_recovery()
+                │
+                ↓
+            Assertion
+
+
+************************************************************************************************************************************************
